@@ -12,4 +12,4 @@ TextLikeCollection = Collection[TextLike]
 
 ScalarLike = NumberLike | TextLike
 VectorLike = NumberLikeCollection | TextLikeCollection
-Percentile = Annotated[float, Interval(0, 1)]
+Percentile = Annotated[float, Interval(gt=0, lt=1)]

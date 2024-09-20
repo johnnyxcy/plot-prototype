@@ -8,5 +8,8 @@
     "**/Thumbs.db": true,
     "**/__pycache__": true,
     ".venv": true
-  }
+  },
+  "notebook.formatOnSave.enabled": true,
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+  "python.envFile": "${workspaceFolder}/.env"
 }
