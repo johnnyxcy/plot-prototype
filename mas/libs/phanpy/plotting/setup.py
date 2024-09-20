@@ -12,6 +12,7 @@
 #
 # Copyright (c) 2024 Maspectra Dev Team
 ############################################################
+import logging as logger
 import os
 import pathlib
 import tempfile
@@ -21,7 +22,6 @@ import bokeh.resources
 
 from mas.libs.phanpy.ipython.detect_ipython import is_ipynb
 from mas.libs.phanpy.metaclass.singleton import Singleton
-from mas.loggings import logger
 
 
 class _SetupFlag(metaclass=Singleton):
@@ -33,7 +33,9 @@ def _get_bokeh_resource() -> tuple[bokeh.resources.ResourcesMode, pathlib.Path |
     if MAS_BOKEH_ROOTDIR:
         root_dir = pathlib.Path(MAS_BOKEH_ROOTDIR)
         if not root_dir.exists():
-            logger.warning(f"Given bokeh resource dir '{root_dir.as_posix()}' does not exists, fallback to inline")
+            logger.warning(
+                f"Given bokeh resource dir '{root_dir.as_posix()}' does not exists, fallback to inline"
+            )
         else:
             return "relative", root_dir
 

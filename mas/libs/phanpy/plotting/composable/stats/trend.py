@@ -13,6 +13,8 @@
 # Copyright (c) 2024 Maspectra Dev Team
 ############################################################
 
+from typing import Any
+
 import numpy as np
 import numpy.typing as npt
 import polars as pl
@@ -22,10 +24,14 @@ from mas.libs.phanpy.plotting.composable.glyphs.line import Segment
 
 def trend_line(data: pl.DataFrame, x: str, y: str) -> Segment:
     data = data.filter(
-        pl.col(x).is_null().or_(pl.col(x).is_nan()).or_(pl.col(y).is_null().or_(pl.col(y).is_nan())).not_()
+        pl.col(x)
+        .is_null()
+        .or_(pl.col(x).is_nan())
+        .or_(pl.col(y).is_null().or_(pl.col(y).is_nan()))
+        .not_()
     )
-    x_data: npt.NDArray[np.float_] = data[x].to_numpy()
-    y_data: npt.NDArray[np.float_] = data[y].to_numpy()
+    x_data: npt.NDArray[np.floating[Any]] = data[x].to_numpy()
+    y_data: npt.NDArray[np.floating[Any]] = data[y].to_numpy()
     k, b = np.polyfit(x_data, y_data, deg=1)
 
     x1 = x_data.min()

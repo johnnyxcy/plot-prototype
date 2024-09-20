@@ -12,10 +12,22 @@ typing-extensions = "^4.12.2"
 polars = "^1.7.1"
 pydantic = "^2.9.2"
 numpy = "^2.1.1"
+ipython = "^8.27.0"
 
 [tool.pyright]
 typeCheckingMode = "strict"
+
+reportPrivateUsage = "none"
+reportConstantRedefinition = "none"
+
 reportUnnecessaryIsInstance = "none"
+reportUnnecessaryComparison = "none"
+
+reportUnknownMemberType = "warning"
+reportUnknownParameterType = "warning"
+reportUnknownPropertyType = "warning"
+reportUnknownVariableType = "warning"
+reportUnknownArgumentType = "warning"
 
 [build-system]
 requires = ["poetry-core"]

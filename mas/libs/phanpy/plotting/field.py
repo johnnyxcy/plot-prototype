@@ -14,6 +14,7 @@
 ############################################################
 import abc
 import functools
+import logging as logger
 from dataclasses import dataclass
 from typing import Any, Callable, Collection
 
@@ -23,7 +24,6 @@ from polars._typing import IntoExpr, NonNestedLiteral
 from typing_extensions import Generic, Protocol, TypeVar
 
 from mas.libs.phanpy.types.primitive import ScalarLike
-from mas.loggings import logger
 
 T = TypeVar("T", default=Any)
 DataT = TypeVar("DataT", bound=NonNestedLiteral, default=ScalarLike)
@@ -249,7 +249,7 @@ def handle_spec_constructor(
     return column_name, data
 
 
-DictT = TypeVar("DictT", bound=dict, default=dict[str, Any])
+DictT = TypeVar("DictT", bound=dict[Any, Any], default=dict[str, Any])
 
 DictKey = str
 FieldName = str
