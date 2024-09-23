@@ -30,9 +30,12 @@ from mas.libs.phanpy.plotting.field import (
     interpret_data_spec,
     replace_field_props,
 )
-from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter, PlotConstructorProps
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
-from mas.libs.phanpy.plotting.render import render_glyph
+from mas.libs.phanpy.plotting.render import (
+    apply_facet_filter,
+    render_glyph,
+)
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
 from mas.libs.phanpy.types.primitive import Percentile
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
@@ -107,7 +110,7 @@ class BoxPlot(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
     ) -> None:
         data, (x_name, y_name) = interpret_data_spec(
             data=self._data,
@@ -154,7 +157,7 @@ class BoxPlot(
         q2_level = self._spec.get("q_middle", 0.5)
         q3_level = self._spec.get("q_upper", 0.75)
         q_outlier_level = self._spec.get("q_outlier", 1.5)
-
+        # data = apply_facet_filter(data, facet_filter)
         stats_data = (
             data.lazy()
             .group_by(*group_columns)
@@ -180,6 +183,8 @@ class BoxPlot(
                 ).alias(group_name)
             )
         stats_data = stats_data.collect()
+        styles_d, stats_data = replace_field_props(styles_d, data=stats_data)
+        stats_data = apply_facet_filter(stats_data, facet_filter)
 
         range_max = max(range_max, stats_data[qmax_name].nan_max())
         range_min = min(range_min, stats_data[qmin_name].nan_min())
@@ -188,7 +193,7 @@ class BoxPlot(
         range_max = range_max * 1.1
         range_min = range_min * 0.9
 
-        (styles_d, stats_data) = replace_field_props(styles_d, data=stats_data)
+        # (styles_d, stats_data) = replace_field_props(styles_d, data=stats_data)
 
         hover_template = self._spec.pop("hover_template", None)
         if hover_template:
@@ -410,7 +415,7 @@ class BoxPlot(
             #         "typ": "categorical",
             #         "factors": df[cat_on_name].unique().sort().to_list(),
             #     }
-        super()(
+        super().__call__(
             figure=figure,
             legend=legend,
             data=data,

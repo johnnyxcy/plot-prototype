@@ -22,6 +22,7 @@ from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
     RenderLevelType,
 )
 from mas.libs.phanpy.plotting.field import DataSpec, interpret_data_spec
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import LineProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import LineStyleableTrait
@@ -39,6 +40,7 @@ class Line(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         self,
         x: DataSpec[NumberLike],
         y: DataSpec[NumberLike],
+        group: str | None = None,
         name: str | None = None,
         *,
         legend_label: str | None = None,
@@ -54,7 +56,7 @@ class Line(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         )
         self._x = x
         self._y = y
-
+        self._group = group
         self._styles = styles or self.Styles()
 
     def _draw(
@@ -62,7 +64,7 @@ class Line(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (x, y) = interpret_data_spec(
@@ -70,18 +72,33 @@ class Line(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
             x=self._x,
             y=self._y,
         )
-        default_tooltip_template = pl.concat_str(
-            pl.format("{}={}", pl.lit(x), pl.col(x)),
-            pl.lit("<br>"),
-            pl.format("{}={}", pl.lit(y), pl.col(y)),
-        )
+
+        if self._group is not None:
+            # use multiline
+            data = (
+                data.group_by(self._group)
+                .agg(pl.all())
+                .explode(pl.all().exclude(self._group, x, y))
+            )
+            glyph = bm.MultiLine(xs=x, ys=y)
+            default_tooltip_template = pl.concat_str(
+                pl.format("{}={}", pl.lit(self._group), pl.col(self._group)),
+            )
+        else:
+            glyph = bm.Line(x=x, y=y)
+            default_tooltip_template = pl.concat_str(
+                pl.format("{}={}", pl.lit(x), pl.col(x)),
+                pl.lit("<br>"),
+                pl.format("{}={}", pl.lit(y), pl.col(y)),
+            )
+
         self.render_glyph(
             figure=figure,
             legend=legend,
             data=data,
             facet_filter=facet_filter,
             level=level,
-            glyph=bm.Line(x=x, y=y),
+            glyph=glyph,
             props={**self._styles},
             default_tooltip_template=default_tooltip_template,
         )
@@ -114,7 +131,7 @@ class VLine(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (x,) = interpret_data_spec(
@@ -160,7 +177,7 @@ class HLine(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (y,) = interpret_data_spec(
@@ -212,7 +229,7 @@ class Segment(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         self.render_glyph(
@@ -270,7 +287,7 @@ class Ray(GlyphSpec, LineStyleableTrait[LineGlyphStyles]):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         self.render_glyph(

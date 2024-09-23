@@ -29,6 +29,7 @@ from mas.libs.phanpy.plotting.field import (
     interpret_data_spec,
     replace_field_props,
 )
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import (
     FillProps,
     JitterProps,
@@ -93,7 +94,7 @@ class Scatter(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (x, y) = interpret_data_spec(

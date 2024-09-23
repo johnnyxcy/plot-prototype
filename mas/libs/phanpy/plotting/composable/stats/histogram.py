@@ -32,7 +32,7 @@ from mas.libs.phanpy.plotting.field import (
     get_field_props,
     interpret_data_spec,
 )
-from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter, PlotConstructorProps
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
 from mas.libs.phanpy.types.primitive import IntegerCollection, NumberLike, ScalarLike
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
@@ -103,7 +103,7 @@ class Histogram(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
     ) -> None:
         data, (x_name,) = interpret_data_spec(
             data=self._data,
@@ -268,7 +268,7 @@ class Histogram(
                 )
             )
 
-        super()(
+        super().__call__(
             figure=figure,
             legend=legend,
             data=data,

@@ -30,6 +30,7 @@ from mas.libs.phanpy.plotting.field import (
     interpret_data_spec,
     replace_field_props,
 )
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import JitterProps, TextProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import TextStyleableTrait
@@ -120,7 +121,7 @@ class Text(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (x, y, text) = interpret_data_spec(

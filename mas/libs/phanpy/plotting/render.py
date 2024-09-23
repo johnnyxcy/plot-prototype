@@ -24,6 +24,7 @@ from mas.libs.phanpy.plotting.constants import (
     RENDERER_TAG,
     GlyphTooltipsTag,
 )
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.legends import handle_legend_group, handle_legend_label
 
 GlyphLegendType = Literal["label", "group"]
@@ -32,6 +33,36 @@ GlyphLegendType = Literal["label", "group"]
 class GlyphLegendSpec(TypedDict):
     legend_type: NotRequired[GlyphLegendType]
     legend_value: NotRequired[str]
+
+
+# def distinct_facet_filter_with_groupby(
+#     facet_filter: FacetFilter | None,
+#     by: Iterable[str],
+# ) -> pl.Expr | None:
+#     if facet_filter is None:
+#         return facet_filter
+
+#     for name in facet_filter.meta.root_names():
+#         facet_filter = facet_filter.or_(pl.col(name) == pl.col(name))
+
+#     return facet_filter
+
+
+def apply_facet_filter(
+    data: pl.DataFrame,
+    facet_filter: FacetFilter | None,
+) -> pl.DataFrame:
+    if facet_filter is not None:
+        for k in facet_filter.keys():
+            if k not in data.columns:
+                return data
+
+        data_ = data.lazy()
+        for k, v in facet_filter.items():
+            data_ = data_.filter(pl.col(k) == v)
+        return data_.collect()
+    else:
+        return data
 
 
 def typesafe_glyph_legend(
@@ -75,7 +106,7 @@ def update_legend(
 
 def render_glyph(
     data: pl.DataFrame,
-    facet_filter: pl.Expr | None,
+    facet_filter: FacetFilter | None,
     glyph: bm.Glyph,
     figure: bm.Plot,
     name: str | None = None,
@@ -91,16 +122,7 @@ def render_glyph(
         )
         tags.append(GlyphTooltipsTag.FIELD.value)
 
-    if facet_filter is not None:
-        filter_is_valid = True
-        for name in facet_filter.meta.root_names():
-            if name not in data.columns:
-                filter_is_valid = False
-                break
-
-        if filter_is_valid:
-            data = data.filter(facet_filter)
-
+    data = apply_facet_filter(data, facet_filter)
     source = bm.ColumnDataSource(data.to_dict())
     renderer = figure.add_glyph(
         source,

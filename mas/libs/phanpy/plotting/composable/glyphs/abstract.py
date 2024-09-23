@@ -24,6 +24,7 @@ from mas.libs.phanpy.plotting.field import (
     get_field_props,
     handle_spec_constructor,
 )
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.render import (
     GlyphLegendSpec,
     render_glyph,
@@ -90,7 +91,7 @@ class GlyphSpec(CopyTrait, abc.ABC):
         figure: bm.Plot,
         legend: bm.Legend | None,
         data: pl.DataFrame,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         glyph: bm.Glyph,
         props: dict[str, Any],
         level: RenderLevelType = "glyph",
@@ -163,7 +164,7 @@ class GlyphSpec(CopyTrait, abc.ABC):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         pass

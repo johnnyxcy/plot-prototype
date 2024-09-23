@@ -24,6 +24,7 @@ from mas.libs.phanpy.plotting.field import (
     DataSpec,
     interpret_data_spec,
 )
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
@@ -74,7 +75,7 @@ class VBar(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (x, top, bottom) = interpret_data_spec(
@@ -137,7 +138,7 @@ class HBar(
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         level: RenderLevelType = "glyph",
     ) -> None:
         data, (y, left, right) = interpret_data_spec(

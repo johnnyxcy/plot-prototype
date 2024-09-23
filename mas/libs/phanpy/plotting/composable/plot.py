@@ -19,8 +19,8 @@ import polars as pl
 from typing_extensions import NotRequired, Self, Sequence, Unpack
 
 from mas.libs.phanpy.plotting.composable.glyphs import GlyphSpec
+from mas.libs.phanpy.plotting.layer.plot import FacetFilter, PlotConstructorProps
 from mas.libs.phanpy.plotting.layer.plot import Plot as BasePlot
-from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
 
 
@@ -51,7 +51,7 @@ class Plot(BasePlot):
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
     ) -> None:
         for glyph in self._glyphs:
             glyph._draw(

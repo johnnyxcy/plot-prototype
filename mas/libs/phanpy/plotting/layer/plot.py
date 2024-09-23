@@ -1,6 +1,7 @@
 # pyright: reportAttributeAccessIssue=none
 from __future__ import annotations
 
+import copy
 from typing import Any, Iterable, Protocol, TypedDict, cast, overload
 
 import bokeh.models as bm
@@ -71,13 +72,16 @@ class PlotConstructorProps(PlotSpec):
     facet: NotRequired[FacetSpec]
 
 
+FacetFilter = dict[str, Any]
+
+
 class DrawFuncType(Protocol):
     def __call__(
         self,
         figure: bm.Plot,
         legend: bm.Legend,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
     ) -> None: ...
 
 
@@ -86,7 +90,7 @@ class PlotDrawer(RenderableTrait):
         self,
         on_draw: DrawFuncType,
         data: pl.DataFrame | None,
-        facet_filter: pl.Expr | None,
+        facet_filter: FacetFilter | None,
         props: PlotSpec,
     ) -> None:
         self._on_draw = on_draw
@@ -245,21 +249,28 @@ class Plot(
 
     def _as_renderable(
         self,
-        filter: pl.Expr | None = None,
+        filter: FacetFilter | None = None,
+        with_legend: bool = True,
     ) -> PlotDrawer:
         def on_draw(
             figure: bm.Plot,
             legend: bm.Legend,
             data: pl.DataFrame | None,
-            facet_filter: pl.Expr | None,
+            facet_filter: FacetFilter | None,
         ) -> None:
             self(figure, legend, data, facet_filter)
+
+        if with_legend is False:
+            _props = copy.deepcopy(self._props)
+            _props.update(legend={"placement": None})
+        else:
+            _props = self._props
 
         return PlotDrawer(
             on_draw=on_draw,
             data=self._data,
             facet_filter=filter,
-            props=self._props,
+            props=_props,
         )
 
     def _render_facet(self, facet: FacetSpec) -> PlotRenderedComponents:
@@ -285,10 +296,10 @@ class Plot(
         combs = df.select(by).unique().sort(by)
 
         for combination in combs.iter_rows(named=True):
-            filter_ = pl.lit(True)
-            for colname, value in combination.items():
-                filter_ = filter_ & (pl.col(colname) == value)
-            rendered = self._as_renderable(filter=filter_)
+            rendered = self._as_renderable(
+                filter=combination,
+                with_legend=False,
+            )
             children.append(rendered)
 
         return GridPlot(
