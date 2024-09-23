@@ -15,15 +15,16 @@
 from typing import Iterable, Literal, cast
 
 import bokeh.models as bm
+import polars as pl
 from typing_extensions import NotRequired, Self, Sequence, Unpack
 
-from mas.libs.phanpy.plotting.base import BasePlot, BasePlotConstructorProps
 from mas.libs.phanpy.plotting.composable.glyphs import GlyphSpec
-from mas.libs.phanpy.plotting.composable.renderable import GlyphRenderable
+from mas.libs.phanpy.plotting.layer.plot import Plot as BasePlot
+from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
 
 
-class ComposablePlotConstructorProps(BasePlotConstructorProps):
+class ComposablePlotConstructorProps(PlotConstructorProps):
     glyphs: NotRequired[Sequence[GlyphSpec]]
 
 
@@ -32,7 +33,7 @@ class Plot(BasePlot):
         self,
         **props: Unpack[ComposablePlotConstructorProps],
     ) -> None:
-        super().__init__(**keysafe_typeddict(props, BasePlotConstructorProps))
+        super().__init__(**keysafe_typeddict(props, PlotConstructorProps))
         self._glyphs = [*props.get("glyphs", [])]
 
     def add(self, *glyph: GlyphSpec | None | Literal[False]) -> Self:
@@ -45,15 +46,17 @@ class Plot(BasePlot):
         )
         return self_
 
-    def _do_render(self, renderable: GlyphRenderable) -> None:
+    def __call__(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+    ) -> None:
         for glyph in self._glyphs:
-            glyph._draw(renderable)
-
-    def _render(self, figure: bm.Plot, legend: bm.Legend) -> None:
-        self._do_render(
-            GlyphRenderable(
+            glyph._draw(
                 figure=figure,
                 legend=legend,
-                data=self._data,
+                data=data,
+                facet_filter=facet_filter,
             )
-        )

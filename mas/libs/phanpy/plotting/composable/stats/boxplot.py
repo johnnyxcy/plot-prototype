@@ -20,8 +20,6 @@ import numpy as np
 import polars as pl
 from typing_extensions import NotRequired, Self, Unpack
 
-from mas.libs.phanpy.plotting.base import BasePlotConstructorProps
-from mas.libs.phanpy.plotting.composable.glyphs.abstract import GlyphRenderable
 from mas.libs.phanpy.plotting.composable.glyphs.bar import BarGlyphStyles
 from mas.libs.phanpy.plotting.composable.plot import Plot
 from mas.libs.phanpy.plotting.constants import m_internal
@@ -32,6 +30,7 @@ from mas.libs.phanpy.plotting.field import (
     interpret_data_spec,
     replace_field_props,
 )
+from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
 from mas.libs.phanpy.plotting.render import render_glyph
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
@@ -79,7 +78,7 @@ class BoxPlotSpec(TypedDict):
 
 class RawBoxPlotConstructorProps(
     BarGlyphStyles,
-    BasePlotConstructorProps,
+    PlotConstructorProps,
 ):
     pass
 
@@ -103,7 +102,13 @@ class BoxPlot(
         self._spec = keysafe_typeddict(props, BoxPlotSpec)
         self._styles = keysafe_typeddict(props, BarGlyphStyles) or BoxPlot.Styles()
 
-    def _render(self, figure: bm.Plot, legend: bm.Legend) -> None:
+    def __call__(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+    ) -> None:
         data, (x_name, y_name) = interpret_data_spec(
             data=self._data,
             x=self._spec["x"],
@@ -288,6 +293,7 @@ class BoxPlot(
                             width=size,
                             **styles_d,
                         ),
+                        facet_filter=None,
                         figure=figure,
                         legend=legend,
                         legend_spec={
@@ -298,6 +304,7 @@ class BoxPlot(
                     )
                     render_glyph(
                         data=df_i,
+                        facet_filter=None,
                         glyph=bm.VBar(
                             x=cat_variable,
                             top=q2_name,
@@ -315,6 +322,7 @@ class BoxPlot(
                         render_glyph(
                             name="outlier",
                             data=outliers,
+                            facet_filter=None,
                             glyph=bm.Scatter(
                                 x=cat_variable,
                                 y=stats_on_name,
@@ -330,6 +338,7 @@ class BoxPlot(
                 else:
                     render_glyph(
                         data=df_i,
+                        facet_filter=None,
                         glyph=bm.HBar(
                             y=cat_variable,
                             left=q3_name,
@@ -347,6 +356,7 @@ class BoxPlot(
                     )
                     render_glyph(
                         data=df_i,
+                        facet_filter=None,
                         glyph=bm.HBar(
                             y=cat_variable,
                             left=q2_name,
@@ -360,6 +370,7 @@ class BoxPlot(
                         render_glyph(
                             name="outlier",
                             data=outliers,
+                            facet_filter=None,
                             glyph=bm.Scatter(
                                 x=stats_on_name,
                                 y=cat_variable,
@@ -399,12 +410,11 @@ class BoxPlot(
             #         "typ": "categorical",
             #         "factors": df[cat_on_name].unique().sort().to_list(),
             #     }
-        self._do_render(
-            GlyphRenderable(
-                figure=figure,
-                legend=legend,
-                data=data,
-            )
+        super()(
+            figure=figure,
+            legend=legend,
+            data=data,
+            facet_filter=facet_filter,
         )
 
     def with_hover_template(self, hover_callable: BoxPlotHoverTemplate) -> Self:

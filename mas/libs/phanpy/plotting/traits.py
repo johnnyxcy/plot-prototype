@@ -12,7 +12,6 @@
 #
 # Copyright (c) 2024 Maspectra Dev Team
 ############################################################
-import abc
 from typing import Generic, TypeVar
 
 from typing_extensions import Self, Unpack
@@ -29,7 +28,6 @@ TextPropsT = TypeVar("TextPropsT", bound=TextProps)
 class LineStyleableTrait(
     Copyable,
     Generic[LinePropsT],
-    abc.ABC,
 ):
     _styles: LinePropsT
 
@@ -42,7 +40,6 @@ class LineStyleableTrait(
 class FillStyleableTrait(
     Copyable,
     Generic[FillPropsT],
-    abc.ABC,
 ):
     _styles: FillPropsT
 
@@ -55,7 +52,6 @@ class FillStyleableTrait(
 class MarkerStylableTrait(
     Copyable,
     Generic[MarkerPropsT],
-    abc.ABC,
 ):
     _styles: MarkerPropsT
 
@@ -68,7 +64,6 @@ class MarkerStylableTrait(
 class TextStyleableTrait(
     Copyable,
     Generic[TextPropsT],
-    abc.ABC,
 ):
     _styles: TextPropsT
 

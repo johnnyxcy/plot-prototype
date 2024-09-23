@@ -19,8 +19,8 @@ import polars as pl
 from typing_extensions import NotRequired, Unpack
 
 from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
-    GlyphRenderable,
     GlyphSpec,
+    RenderLevelType,
 )
 from mas.libs.phanpy.plotting.field import DataSpec, interpret_data_spec
 from mas.libs.phanpy.plotting.props import LineProps
@@ -60,9 +60,16 @@ class Step(GlyphSpec, LineStyleableTrait[StepGlyphStyles]):
 
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         data, (x, y) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x=self._x,
             y=self._y,
         )
@@ -71,11 +78,13 @@ class Step(GlyphSpec, LineStyleableTrait[StepGlyphStyles]):
             pl.lit("<br>"),
             pl.format("{}={}", pl.lit(y), pl.col(y)),
         )
-        self.render_glyph_with_reducing_props(
-            figure=renderable.figure,
-            legend=renderable.legend,
+        self.render_glyph(
+            figure=figure,
+            legend=legend,
             data=data,
-            glyph=bm.Step(x=x, y=y, **self._styles),
+            facet_filter=facet_filter,
+            glyph=bm.Step(x=x, y=y),
             props={**self._styles},
+            level=level,
             default_tooltip_template=default_tooltip_template,
         )

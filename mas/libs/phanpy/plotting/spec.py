@@ -14,9 +14,10 @@
 ############################################################
 from __future__ import annotations
 
-from typing import Any, Generic, Literal, cast
+from typing import Any, Generic, Iterable, Literal, cast
 
 import bokeh.models as bm
+import polars as pl
 from bokeh.core.enums import (
     AlignType,
     FontStyleType,
@@ -30,8 +31,15 @@ from bokeh.core.enums import (
     TextAlignType,
     TextBaselineType,
 )
-from typing_extensions import NotRequired, TypedDict, TypeVar, Unpack  # 必须要从 typing_extension 里面导入，否则不支持继承 Generic
+from polars._typing import IntoExpr
+from typing_extensions import (  # 必须要从 typing_extension 里面导入，否则不支持继承 Generic
+    NotRequired,
+    TypedDict,
+    TypeVar,
+    Unpack,
+)
 
+from mas.libs.phanpy.plotting.layer.grid import GridPlotLayoutSpec
 from mas.libs.phanpy.plotting.props import ScalarTextProps
 from mas.libs.phanpy.types.color import Alpha, ColorLike
 from mas.libs.phanpy.types.primitive import TextLikeCollection
@@ -119,11 +127,17 @@ def make_axis(spec: AxSpec[AxisPlaceTypeT]) -> tuple[bm.Axis | None, bm.Axis | N
             num_minor_ticks = spec.get("num_minor_ticks", 5)
             if scale == "linear":
                 axis = bm.LinearAxis(
-                    ticker=bm.BasicTicker(desired_num_ticks=desired_num_ticks, num_minor_ticks=num_minor_ticks)
+                    ticker=bm.BasicTicker(
+                        desired_num_ticks=desired_num_ticks,
+                        num_minor_ticks=num_minor_ticks,
+                    )
                 )
             elif scale == "log":
                 axis = bm.LogAxis(
-                    ticker=bm.LogTicker(desired_num_ticks=desired_num_ticks, num_minor_ticks=num_minor_ticks)
+                    ticker=bm.LogTicker(
+                        desired_num_ticks=desired_num_ticks,
+                        num_minor_ticks=num_minor_ticks,
+                    )
                 )
             else:
                 raise TypeError()
@@ -251,7 +265,9 @@ def make_range(ax: AxSpec[Any]) -> bm.Range:
     else:
         factors_: TextLikeCollection | None = ax.get("factors", None)
         if factors_ is None:
-            raise ValueError("You must provide factors if no data is provided with categorical axis")
+            raise ValueError(
+                "You must provide factors if no data is provided with categorical axis"
+            )
 
         return bm.FactorRange(factors=list(factors_))
 
@@ -284,7 +300,9 @@ class GridLineSpec(
     minor_visible: NotRequired[bool]
 
 
-def make_grid_lines(spec: GridLineSpec, **defaults: Unpack[GridLineSpec]) -> bm.Grid | None:
+def make_grid_lines(
+    spec: GridLineSpec, **defaults: Unpack[GridLineSpec]
+) -> bm.Grid | None:
     grid = bm.Grid(**defaults)
     visible = spec.get("visible", True)
     if visible:
@@ -350,3 +368,22 @@ def make_legend(spec: LegendSpec, legend: bm.Legend | None = None) -> bm.Legend:
     legend.update(**spec_)
 
     return legend
+
+
+class BaseFacetSpec(GridPlotLayoutSpec):
+    pass
+
+
+class FacetWrapSpec(BaseFacetSpec):
+    style: Literal["wrap"]
+    by: IntoExpr | Iterable[IntoExpr]
+    n_cols: int | None
+
+
+class FacetGridSpec(BaseFacetSpec):
+    style: Literal["grid"]
+    colname: str | pl.Expr
+    rowname: str | pl.Expr
+
+
+FacetSpec = FacetWrapSpec | FacetGridSpec

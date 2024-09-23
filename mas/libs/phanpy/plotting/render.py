@@ -75,6 +75,7 @@ def update_legend(
 
 def render_glyph(
     data: pl.DataFrame,
+    facet_filter: pl.Expr | None,
     glyph: bm.Glyph,
     figure: bm.Plot,
     name: str | None = None,
@@ -89,6 +90,16 @@ def render_glyph(
             tooltip_template.alias(GLYPH_FIELD_TOOLTIPS_COLUMN_NAME)
         )
         tags.append(GlyphTooltipsTag.FIELD.value)
+
+    if facet_filter is not None:
+        filter_is_valid = True
+        for name in facet_filter.meta.root_names():
+            if name not in data.columns:
+                filter_is_valid = False
+                break
+
+        if filter_is_valid:
+            data = data.filter(facet_filter)
 
     source = bm.ColumnDataSource(data.to_dict())
     renderer = figure.add_glyph(

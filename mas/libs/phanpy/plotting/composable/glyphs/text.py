@@ -17,11 +17,19 @@ from __future__ import annotations
 from typing import Any, Literal
 
 import bokeh.models as bm
+import polars as pl
 from bokeh.core.property.vectorization import Field as BokehField
 from typing_extensions import NotRequired, Self, Unpack
 
-from mas.libs.phanpy.plotting.composable.glyphs.abstract import GlyphRenderable, GlyphSpec
-from mas.libs.phanpy.plotting.field import DataSpec, interpret_data_spec, replace_field_props
+from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
+    GlyphSpec,
+    RenderLevelType,
+)
+from mas.libs.phanpy.plotting.field import (
+    DataSpec,
+    interpret_data_spec,
+    replace_field_props,
+)
 from mas.libs.phanpy.plotting.props import JitterProps, TextProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import TextStyleableTrait
@@ -107,9 +115,16 @@ class Text(
         self_._styles["jitter"] = jitter_styles
         return self_
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         data, (x, y, text) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x=self._x,
             y=self._y,
             text=self._text,
@@ -119,39 +134,42 @@ class Text(
         jitter_styles: JitterProps = styles.pop("jitter", JitterProps())
         styles, data = replace_field_props(styles, data=data)
 
-        if isinstance(renderable.figure.x_scale, bm.CategoricalScale):
+        if isinstance(figure.x_scale, bm.CategoricalScale):
             x = BokehField(
                 x,
                 bm.Jitter(
                     width=jitter_styles.get("width", 0.5),
                     mean=jitter_styles.get("mean", 0),
                     distribution=jitter_styles.get("distribution", "uniform"),
-                    range=renderable.figure.x_range,
+                    range=figure.x_range,
                 ),
             )
 
-        if isinstance(renderable.figure.y_scale, bm.CategoricalScale):
+        if isinstance(figure.y_scale, bm.CategoricalScale):
             y = BokehField(
                 y,
                 bm.Jitter(
                     width=jitter_styles.get("width", 0.5),
                     mean=jitter_styles.get("mean", 0),
                     distribution=jitter_styles.get("distribution", "uniform"),
-                    range=renderable.figure.y_range,
+                    range=figure.y_range,
                 ),
             )
         if self._typeset == "plaintext":
-            glyph = bm.Text(x=x, y=y, text=text, **styles)
+            glyph = bm.Text(x=x, y=y, text=text)
         elif self._typeset == "tex":
-            glyph = bm.TeXGlyph(x=x, y=y, text=text, **styles)
+            glyph = bm.TeXGlyph(x=x, y=y, text=text)
         elif self._typeset == "mathml":
-            glyph = bm.MathMLGlyph(x=x, y=y, text=text, **styles)
+            glyph = bm.MathMLGlyph(x=x, y=y, text=text)
         else:
             raise ValueError(f"Invalid typeset {self._typeset}")
 
         self.render_glyph(
-            figure=renderable.figure,
-            legend=renderable.legend,
+            figure=figure,
+            legend=legend,
             data=data,
+            facet_filter=facet_filter,
             glyph=glyph,
+            props={**styles},
+            level=level,
         )

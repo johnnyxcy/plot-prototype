@@ -21,8 +21,6 @@ import polars as pl
 from polars._typing import PolarsDataType
 from typing_extensions import NotRequired, Self, Unpack
 
-from mas.libs.phanpy.plotting.base import BasePlotConstructorProps
-from mas.libs.phanpy.plotting.composable.glyphs.abstract import GlyphRenderable
 from mas.libs.phanpy.plotting.composable.glyphs.area import (
     Rectangle,
     RectangleGlyphStyles,
@@ -34,6 +32,7 @@ from mas.libs.phanpy.plotting.field import (
     get_field_props,
     interpret_data_spec,
 )
+from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
 from mas.libs.phanpy.types.primitive import IntegerCollection, NumberLike, ScalarLike
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
@@ -71,7 +70,7 @@ class HistogramSpec(TypedDict):
 class HistogramConstructorProps(
     HistogramSpec,
     RectangleGlyphStyles,
-    BasePlotConstructorProps,
+    PlotConstructorProps,
 ):
     pass
 
@@ -93,13 +92,19 @@ class Histogram(
                     "typ": "numeric",
                     "range": (0, "auto"),
                 },
-                **keysafe_typeddict(props, BasePlotConstructorProps),
+                **keysafe_typeddict(props, PlotConstructorProps),
             }
         )
         self._spec = keysafe_typeddict(props, HistogramSpec)
         self._styles = keysafe_typeddict(props, RectangleGlyphStyles) or self.Styles()
 
-    def _render(self, figure: bm.Plot, legend: bm.Legend) -> None:
+    def __call__(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+    ) -> None:
         data, (x_name,) = interpret_data_spec(
             data=self._data,
             x=self._spec["x"],
@@ -195,11 +200,6 @@ class Histogram(
             # 筛选掉 高度为 0 的 矩形数
             merged_df = merged_df.filter(pl.col(top_name) != pl.col(bottom_name))
 
-            renderable = GlyphRenderable(
-                figure=figure,
-                legend=legend,
-                data=merged_df,
-            )
             (
                 Rectangle(
                     left=pl.col(left_name),
@@ -214,7 +214,12 @@ class Histogram(
                     },
                 )
                 .with_hover_tooltip(pl.col(hover_name))
-                ._draw(renderable)
+                ._draw(
+                    figure=figure,
+                    legend=legend,
+                    data=data,
+                    facet_filter=None,
+                )
             )
 
         else:
@@ -241,11 +246,6 @@ class Histogram(
             )
             data = data.with_columns(hover_tooltip.alias(hover_name))
 
-            renderable: GlyphRenderable = GlyphRenderable(
-                figure=figure,
-                legend=legend,
-                data=data,
-            )
             (
                 Rectangle(
                     left=pl.col(left_name),
@@ -260,10 +260,20 @@ class Histogram(
                     },
                 )
                 .with_hover_tooltip(pl.col(hover_name))
-                ._draw(renderable)
+                ._draw(
+                    figure=figure,
+                    legend=legend,
+                    data=data,
+                    facet_filter=None,
+                )
             )
 
-        self._do_render(renderable)
+        super()(
+            figure=figure,
+            legend=legend,
+            data=data,
+            facet_filter=facet_filter,
+        )
 
     def with_hover_template(self, hover_callable: HistogramHoverTemplate) -> Self:
         self_ = self.copy()

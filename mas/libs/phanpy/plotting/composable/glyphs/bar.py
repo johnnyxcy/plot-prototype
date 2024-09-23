@@ -13,10 +13,17 @@
 # Copyright (c) 2024 Maspectra Dev Team
 ############################################################
 import bokeh.models as bm
+import polars as pl
 from typing_extensions import Unpack
 
-from mas.libs.phanpy.plotting.composable.glyphs.abstract import GlyphRenderable, GlyphSpec
-from mas.libs.phanpy.plotting.field import DataSpec, interpret_data_spec, replace_field_props
+from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
+    GlyphSpec,
+    RenderLevelType,
+)
+from mas.libs.phanpy.plotting.field import (
+    DataSpec,
+    interpret_data_spec,
+)
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
@@ -62,30 +69,34 @@ class VBar(
         self._bottom = bottom
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         data, (x, top, bottom) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x=self._x,
             top=self._top,
             bottom=self._bottom,
         )
 
-        styles_d = {"fill_alpha": 0.95, **self._styles}
-        (styles, data) = replace_field_props(styles_d, data=data)
-
-        glyph = bm.VBar(
-            x=x,
-            top=top,
-            bottom=bottom,
-            width=self._width,
-            **styles,
-        )
         self.render_glyph(
-            figure=renderable.figure,
-            legend=renderable.legend,
+            figure=figure,
+            legend=legend,
             data=data,
-            glyph=glyph,
-            level=renderable.level,
+            facet_filter=facet_filter,
+            glyph=bm.VBar(
+                x=x,
+                top=top,
+                bottom=bottom,
+                width=self._width,
+            ),
+            props={"fill_alpha": 0.95, **self._styles},
+            level=level,
         )
 
 
@@ -121,25 +132,31 @@ class HBar(
         self._right = right
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         data, (y, left, right) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             y=self._y,
             left=self._left,
             right=self._right,
         )
-        styles_d = {"fill_alpha": 0.95, **self._styles}
-        (styles, data) = replace_field_props(styles_d, data=data)
-        glyph = bm.HBar(
-            y=y,
-            left=left,
-            right=right,
-            height=self._height,
-            **styles,
-        )
         self.render_glyph(
-            figure=renderable.figure,
-            legend=renderable.legend,
+            figure=figure,
+            legend=legend,
             data=data,
-            glyph=glyph,
+            facet_filter=facet_filter,
+            glyph=bm.HBar(
+                y=y,
+                left=left,
+                right=right,
+                height=self._height,
+            ),
+            props={"fill_alpha": 0.95, **self._styles},
+            level=level,
         )

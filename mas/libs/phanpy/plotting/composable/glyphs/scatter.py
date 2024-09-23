@@ -20,8 +20,8 @@ from bokeh.core.property.vectorization import Field as BokehField
 from typing_extensions import NotRequired, Self, Unpack
 
 from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
-    GlyphRenderable,
     GlyphSpec,
+    RenderLevelType,
 )
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
@@ -88,9 +88,16 @@ class Scatter(
         self_._styles["jitter"] = jitter_styles
         return self_
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         data, (x, y) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x=self._x,
             y=self._y,
         )
@@ -108,7 +115,7 @@ class Scatter(
             styles["line_color"] = fill_color
 
         if (
-            isinstance(renderable.figure.x_scale, bm.CategoricalScale)
+            isinstance(figure.x_scale, bm.CategoricalScale)
             and jitter_styles is not None
         ):
             x = BokehField(
@@ -117,12 +124,12 @@ class Scatter(
                     width=jitter_styles.get("width", 0.5),
                     mean=jitter_styles.get("mean", 0),
                     distribution=jitter_styles.get("distribution", "uniform"),
-                    range=renderable.figure.x_range,
+                    range=figure.x_range,
                 ),
             )
 
         if (
-            isinstance(renderable.figure.y_scale, bm.CategoricalScale)
+            isinstance(figure.y_scale, bm.CategoricalScale)
             and jitter_styles is not None
         ):
             y = BokehField(
@@ -131,7 +138,7 @@ class Scatter(
                     width=jitter_styles.get("width", 0.5),
                     mean=jitter_styles.get("mean", 0),
                     distribution=jitter_styles.get("distribution", "uniform"),
-                    range=renderable.figure.y_range,
+                    range=figure.y_range,
                 ),
             )
 
@@ -145,9 +152,12 @@ class Scatter(
             )
 
         self.render_glyph(
-            figure=renderable.figure,
-            legend=renderable.legend,
+            figure=figure,
+            legend=legend,
             data=data,
+            facet_filter=facet_filter,
             glyph=glyph,
+            props=styles,
+            level=level,
             default_tooltip_template=default_tooltip_template,
         )

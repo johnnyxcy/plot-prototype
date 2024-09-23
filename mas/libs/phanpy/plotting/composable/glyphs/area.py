@@ -17,13 +17,12 @@ import polars as pl
 from typing_extensions import Unpack
 
 from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
-    GlyphRenderable,
     GlyphSpec,
+    RenderLevelType,
 )
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
     interpret_data_spec,
-    replace_field_props,
 )
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
@@ -69,7 +68,14 @@ class Rectangle(
         self._bottom = bottom
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         (
             data,
             (
@@ -79,28 +85,26 @@ class Rectangle(
                 bottom,
             ),
         ) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             left=self._left,
             right=self._right,
             top=self._top,
             bottom=self._bottom,
         )
 
-        (styles, data) = replace_field_props(
-            {"fill_alpha": 0.95, **self._styles}, data=data
-        )
-        glyph = bm.Quad(
-            left=left,
-            right=right,
-            top=top,
-            bottom=bottom,
-            **styles,
-        )
         self.render_glyph(
-            figure=renderable.figure,
-            legend=renderable.legend,
+            figure=figure,
+            legend=legend,
             data=data,
-            glyph=glyph,
+            facet_filter=facet_filter,
+            glyph=bm.Quad(
+                left=left,
+                right=right,
+                top=top,
+                bottom=bottom,
+            ),
+            level=level,
+            props={"fill_alpha": 0.95, **self._styles},
         )
 
 
@@ -137,7 +141,14 @@ class VArea(
         self._y2 = y2
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         (
             data,
             (
@@ -146,21 +157,23 @@ class VArea(
                 y2,
             ),
         ) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x=self._x,
             y1=self._y1,
             y2=self._y2,
         )
-        self.render_glyph_with_reducing_props(
-            figure=renderable.figure,
-            legend=renderable.legend,
+        self.render_glyph(
+            figure=figure,
+            legend=legend,
             data=data,
             glyph=bm.VArea(
                 x=x,
                 y1=y1,
                 y2=y2,
             ),
+            facet_filter=facet_filter,
             props={"fill_alpha": 0.95, **self._styles},
+            level=level,
             default_tooltip_template=pl.concat_str(
                 pl.format("{}={}", pl.lit(x), pl.col(x)),
                 pl.lit("<br>"),
@@ -204,7 +217,14 @@ class HArea(
         self._x2 = x2
         self._styles = styles or self.Styles()
 
-    def _draw(self, renderable: GlyphRenderable) -> None:
+    def _draw(
+        self,
+        figure: bm.Plot,
+        legend: bm.Legend,
+        data: pl.DataFrame | None,
+        facet_filter: pl.Expr | None,
+        level: RenderLevelType = "glyph",
+    ) -> None:
         (
             data,
             (
@@ -213,15 +233,17 @@ class HArea(
                 y,
             ),
         ) = interpret_data_spec(
-            data=renderable.data,
+            data=data,
             x1=self._x1,
             x2=self._x2,
             y=self._y,
         )
-        self.render_glyph_with_reducing_props(
-            figure=renderable.figure,
-            legend=renderable.legend,
+        self.render_glyph(
+            figure=figure,
+            legend=legend,
+            level=level,
             data=data,
+            facet_filter=facet_filter,
             glyph=bm.HArea(
                 x1=x1,
                 x2=x2,

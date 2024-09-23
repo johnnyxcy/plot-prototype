@@ -13,6 +13,7 @@ polars = "^1.7.1"
 pydantic = "^2.9.2"
 numpy = "^2.1.1"
 ipython = "^8.27.0"
+pyarrow = "^17.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

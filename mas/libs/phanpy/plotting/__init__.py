@@ -12,7 +12,6 @@
 #
 # Copyright (c) 2024 Maspectra Dev Team
 ############################################################
-from mas.libs.phanpy.plotting.base import BasePlot, GridPlot
 from mas.libs.phanpy.plotting.composable.glyphs import (
     GlyphSpec,
     HArea,
@@ -26,7 +25,6 @@ from mas.libs.phanpy.plotting.composable.glyphs import (
     VLine,
 )
 from mas.libs.phanpy.plotting.composable.plot import Plot
-from mas.libs.phanpy.plotting.composable.renderable import GlyphRenderable
 from mas.libs.phanpy.plotting.composable.stats.boxplot import BoxPlot
 from mas.libs.phanpy.plotting.composable.stats.histogram import Histogram
 from mas.libs.phanpy.plotting.factor import factor_cmap, factor_marker
@@ -34,13 +32,10 @@ from mas.libs.phanpy.plotting.options import plotting_options
 from mas.libs.phanpy.plotting.setup import setup_html, setup_notebook
 
 __all__ = [
-    "BasePlot",
     "BoxPlot",
     "factor_cmap",
     "factor_marker",
-    "GlyphRenderable",
     "GlyphSpec",
-    "GridPlot",
     "HArea",
     "Histogram",
     "HLine",

@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 
 class Copyable(Protocol):
-    def copy(self, deep: bool = False) -> Self: ...
+    def copy(self, deep: bool = True) -> Self: ...
 
 
 class CopyTrait:
@@ -30,5 +30,5 @@ class CopyTrait:
 
         return obj
 
-    def copy(self, deep: bool = False) -> Self:
+    def copy(self, deep: bool = True) -> Self:
         return copy.deepcopy(self) if deep else copy.copy(self)
