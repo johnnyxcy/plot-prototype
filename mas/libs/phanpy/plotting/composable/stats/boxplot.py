@@ -23,6 +23,7 @@ from typing_extensions import NotRequired, Self, Unpack
 from mas.libs.phanpy.plotting.composable.glyphs.bar import BarGlyphStyles
 from mas.libs.phanpy.plotting.composable.plot import Plot
 from mas.libs.phanpy.plotting.constants import m_internal
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
     field_,
@@ -30,7 +31,7 @@ from mas.libs.phanpy.plotting.field import (
     interpret_data_spec,
     replace_field_props,
 )
-from mas.libs.phanpy.plotting.layer.plot import FacetFilter, PlotConstructorProps
+from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.plotting.props import FillProps, LineProps
 from mas.libs.phanpy.plotting.render import (
     apply_facet_filter,

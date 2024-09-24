@@ -25,12 +25,12 @@ from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
     GlyphSpec,
     RenderLevelType,
 )
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
     interpret_data_spec,
     replace_field_props,
 )
-from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import JitterProps, TextProps
 from mas.libs.phanpy.plotting.render import typesafe_glyph_legend
 from mas.libs.phanpy.plotting.traits import TextStyleableTrait

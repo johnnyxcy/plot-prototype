@@ -27,12 +27,13 @@ from mas.libs.phanpy.plotting.composable.glyphs.area import (
 )
 from mas.libs.phanpy.plotting.composable.plot import Plot
 from mas.libs.phanpy.plotting.constants import m_internal
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.field import (
     StrictDataSpec,
     get_field_props,
     interpret_data_spec,
 )
-from mas.libs.phanpy.plotting.layer.plot import FacetFilter, PlotConstructorProps
+from mas.libs.phanpy.plotting.layer.plot import PlotConstructorProps
 from mas.libs.phanpy.plotting.traits import FillStyleableTrait, LineStyleableTrait
 from mas.libs.phanpy.types.primitive import IntegerCollection, NumberLike, ScalarLike
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict

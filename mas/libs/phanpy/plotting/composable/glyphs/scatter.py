@@ -23,13 +23,13 @@ from mas.libs.phanpy.plotting.composable.glyphs.abstract import (
     GlyphSpec,
     RenderLevelType,
 )
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
     get_field_props,
     interpret_data_spec,
     replace_field_props,
 )
-from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.props import (
     FillProps,
     JitterProps,

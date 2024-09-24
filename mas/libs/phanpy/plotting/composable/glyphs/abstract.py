@@ -19,12 +19,12 @@ import bokeh.models as bm
 import polars as pl
 from typing_extensions import Self
 
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.field import (
     FieldSpecConstructorCls,
     get_field_props,
     handle_spec_constructor,
 )
-from mas.libs.phanpy.plotting.layer.plot import FacetFilter
 from mas.libs.phanpy.plotting.render import (
     GlyphLegendSpec,
     render_glyph,

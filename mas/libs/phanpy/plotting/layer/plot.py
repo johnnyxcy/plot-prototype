@@ -16,6 +16,7 @@ from mas.libs.phanpy.plotting.constants import (
     GlyphTooltipsTag,
 )
 from mas.libs.phanpy.plotting.display import PlotDisplay
+from mas.libs.phanpy.plotting.facet import FacetFilter
 from mas.libs.phanpy.plotting.layer.grid import GridPlot, GridPlotLayoutSpec
 from mas.libs.phanpy.plotting.layer.renderable import (
     PlotRenderedComponents,
@@ -70,9 +71,6 @@ class PlotSpec(PlotLayoutSpec):
 class PlotConstructorProps(PlotSpec):
     data: NotRequired[pl.DataFrame | FrameInitTypes | bm.ColumnDataSource]
     facet: NotRequired[FacetSpec]
-
-
-FacetFilter = dict[str, Any]
 
 
 class DrawFuncType(Protocol):
