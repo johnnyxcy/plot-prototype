@@ -27,7 +27,11 @@ from mas.libs.phanpy.plotting.composable.glyphs.area import (
 )
 from mas.libs.phanpy.plotting.composable.plot import Plot
 from mas.libs.phanpy.plotting.constants import m_internal
-from mas.libs.phanpy.plotting.facet import FacetFilter
+from mas.libs.phanpy.plotting.facet import (
+    FacetFilter,
+    apply_facet_filter,
+    split_facet_filter_for_stats,
+)
 from mas.libs.phanpy.plotting.field import (
     StrictDataSpec,
     get_field_props,
@@ -130,7 +134,10 @@ class Histogram(
         # 如果有 field，那么需要叠
         if len(field_props) > 0:
             field_names = {c.column_name for c in field_props.values()}
-
+            stats_facet_filter, glyph_facet_filter = split_facet_filter_for_stats(
+                facet_filter, field_names
+            )
+            data = apply_facet_filter(data, stats_facet_filter)
             group_name = ",".join(field_names)
             schema: dict[str, PolarsDataType] = {
                 **{name: data[name].dtype for name in field_names},
@@ -150,7 +157,7 @@ class Histogram(
             bins_nums = len(edges) - 1
             top_values = np.zeros(bins_nums)
             bottom_values = np.zeros(bins_nums)
-            for key, group_df in data.group_by(field_names, maintain_order=True):
+            for key, group_df in data.group_by(field_names):
                 group_data = group_df[x_name].drop_nans()
                 hist, edges = np.histogram(group_data, bins=edges, density=density)
                 if hist_type == "probability":
@@ -183,7 +190,7 @@ class Histogram(
                     ),
                     in_place=True,
                 )
-            merged_df = merged_df.explode(
+            merged_df = merged_df.sort(field_names).explode(
                 [left_name, right_name, top_name, bottom_name]
             )
 
@@ -200,7 +207,7 @@ class Histogram(
 
             # 筛选掉 高度为 0 的 矩形数
             merged_df = merged_df.filter(pl.col(top_name) != pl.col(bottom_name))
-
+            merged_df = apply_facet_filter(merged_df, glyph_facet_filter)
             (
                 Rectangle(
                     left=pl.col(left_name),
@@ -218,12 +225,13 @@ class Histogram(
                 ._draw(
                     figure=figure,
                     legend=legend,
-                    data=data,
-                    facet_filter=None,
+                    data=merged_df,
+                    facet_filter=facet_filter,
                 )
             )
 
         else:
+            data = apply_facet_filter(data, facet_filter)
             hist, edges = np.histogram(
                 data[x_name].drop_nans().drop_nulls(), bins=bins, density=density
             )

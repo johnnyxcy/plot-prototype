@@ -13,10 +13,11 @@ from mas.libs.phanpy.plotting.constants import (
     GLYPH_FIELD_TOOLTIPS_COLUMN_NAME,
     PLOT_BACKGROUND_FILL_COLOR,
     PLOT_MARGIN,
+    PLOT_TITLE_BACKGROUND_FILL_COLOR,
     GlyphTooltipsTag,
 )
 from mas.libs.phanpy.plotting.display import PlotDisplay
-from mas.libs.phanpy.plotting.facet import FacetFilter
+from mas.libs.phanpy.plotting.facet import FacetFilter, facet_filter_as_str
 from mas.libs.phanpy.plotting.layer.grid import GridPlot, GridPlotLayoutSpec
 from mas.libs.phanpy.plotting.layer.renderable import (
     PlotRenderedComponents,
@@ -39,6 +40,7 @@ from mas.libs.phanpy.plotting.spec import (
     make_legend,
     make_range,
     make_scale,
+    make_title,
 )
 from mas.libs.phanpy.types.color import Alpha, ColorLike
 from mas.libs.phanpy.types.typeddict import keysafe_typeddict
@@ -171,6 +173,47 @@ class PlotDrawer(RenderableTrait):
             y_grid.axis = y_axis
         # endregion
 
+        # region title
+        title_spec = self._props.get("title", TitleSpec())
+        title_placement = title_spec.get("placement", "above")
+        if title_placement is not None and title_spec.get("text", "") != "":
+            if title_placement in ["above", "below"]:
+                ax = x_axis
+            else:
+                ax = y_axis
+            title = make_title(
+                spec=title_spec,
+                ax=ax,
+                background_fill_color=PLOT_TITLE_BACKGROUND_FILL_COLOR,
+            )
+            fig.add_layout(
+                title,
+                title_placement,
+            )
+
+        secondary_title_spec = self._props.get("secondary_title", TitleSpec())
+        secondary_title_placement = secondary_title_spec.get("placement", None)
+        if (
+            secondary_title_placement is not None
+            and secondary_title_spec.get("text", "") != ""
+        ):
+            if secondary_title_placement in ["above", "below"]:
+                ax = x_axis
+            else:
+                ax = y_axis
+
+            title = make_title(
+                spec=secondary_title_spec,
+                ax=ax,
+                background_fill_color=PLOT_TITLE_BACKGROUND_FILL_COLOR,
+            )
+
+            fig.add_layout(
+                title,
+                secondary_title_placement,
+            )
+        # endregion
+
         legend_renderer = bm.Legend()
 
         # region REAL RENDER
@@ -250,22 +293,22 @@ class Plot(
         filter: FacetFilter | None = None,
         with_legend: bool = True,
     ) -> PlotDrawer:
-        def on_draw(
-            figure: bm.Plot,
-            legend: bm.Legend,
-            data: pl.DataFrame | None,
-            facet_filter: FacetFilter | None,
-        ) -> None:
-            self(figure, legend, data, facet_filter)
-
+        _props = copy.deepcopy(self._props)
         if with_legend is False:
-            _props = copy.deepcopy(self._props)
             _props.update(legend={"placement": None})
-        else:
-            _props = self._props
+
+        if filter is not None:
+            title = _props.get("title")
+            if title is None:
+                _props["title"] = {
+                    "text": facet_filter_as_str(filter),
+                    "placement": "above",
+                }
+            else:
+                title["text"] = facet_filter_as_str(filter)
 
         return PlotDrawer(
-            on_draw=on_draw,
+            on_draw=self.copy(),
             data=self._data,
             facet_filter=filter,
             props=_props,

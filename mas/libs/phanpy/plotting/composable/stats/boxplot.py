@@ -23,7 +23,7 @@ from typing_extensions import NotRequired, Self, Unpack
 from mas.libs.phanpy.plotting.composable.glyphs.bar import BarGlyphStyles
 from mas.libs.phanpy.plotting.composable.plot import Plot
 from mas.libs.phanpy.plotting.constants import m_internal
-from mas.libs.phanpy.plotting.facet import FacetFilter
+from mas.libs.phanpy.plotting.facet import FacetFilter, split_facet_filter_for_stats
 from mas.libs.phanpy.plotting.field import (
     DataSpec,
     field_,
@@ -158,7 +158,10 @@ class BoxPlot(
         q2_level = self._spec.get("q_middle", 0.5)
         q3_level = self._spec.get("q_upper", 0.75)
         q_outlier_level = self._spec.get("q_outlier", 1.5)
-        # data = apply_facet_filter(data, facet_filter)
+        stats_facet_filter, glyph_facet_filter = split_facet_filter_for_stats(
+            facet_filter, group_columns
+        )
+        data = apply_facet_filter(data, stats_facet_filter)
         stats_data = (
             data.lazy()
             .group_by(*group_columns)
@@ -185,7 +188,7 @@ class BoxPlot(
             )
         stats_data = stats_data.collect()
         styles_d, stats_data = replace_field_props(styles_d, data=stats_data)
-        stats_data = apply_facet_filter(stats_data, facet_filter)
+        stats_data = apply_facet_filter(stats_data, glyph_facet_filter)
 
         range_max = max(range_max, stats_data[qmax_name].nan_max())
         range_min = min(range_min, stats_data[qmin_name].nan_min())
