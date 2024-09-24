@@ -191,8 +191,8 @@ class BoxPlot(
         range_min = min(range_min, stats_data[qmin_name].nan_min())
         assert isinstance(range_max, int | float)
         assert isinstance(range_min, int | float)
-        range_max = range_max * 1.1
-        range_min = range_min * 0.9
+        range_max = range_max + 0.1 * (range_max - range_min)
+        range_min = range_min - 0.1 * (range_max - range_min)
 
         # (styles_d, stats_data) = replace_field_props(styles_d, data=stats_data)
 
